@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DERAP — Travel Package App (UI Demo)</title>
+<style>
+  :root {
+    --grad-dark: #5d3a5e;
+    --grad-mid: #8b5a8c;
+    --grad-light: #b87ab8;
+    --plum: #6d4470;
+    --plum-deep: #4a2d4e;
+    --pink-accent: #b23a8f;
+    --blush: #e9dbdb;
+    --blush-2: #f2e8e8;
+    --ink: #3a2f3a;
+    --muted: #8d8090;
+    --white: #ffffff;
+    --card-shadow: 0 6px 18px rgba(74, 45, 78, .12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: #efe9ec;
+    color: var(--ink);
+    display: flex; flex-direction: column; align-items: center;
+    padding: 24px 12px 48px; min-height: 100vh;
+  }
+  .intro { max-width: 640px; text-align: center; margin-bottom: 18px; }
+  .intro h1 { font-size: 1.3rem; color: var(--plum-deep); }
+  .intro p { font-size: .85rem; color: var(--muted); margin-top: 4px; }
+  .phone {
+    width: 375px; max-width: 100%; height: 720px;
+    background: var(--blush-2);
+    border-radius: 36px; border: 10px solid #1f1a20;
+    box-shadow: 0 24px 60px rgba(0,0,0,.35);
+    overflow: hidden; position: relative;
+    display: flex; flex-direction: column;
+  }
+  .screen { flex: 1; overflow-y: auto; display: none; flex-direction: column; scrollbar-width: none; }
+  .screen::-webkit-scrollbar { display: none; }
+  .screen.active { display: flex; }
+
+  .statusbar {
+    padding: 8px 22px 4px; font-size: 12px; font-weight: 600;
+    display: flex; justify-content: space-between; flex-shrink: 0;
+  }
+  .statusbar.on-dark { color: #fff; }
+
+  .screen-splash { background: linear-gradient(160deg, var(--grad-dark) 0%, var(--grad-mid) 55%, var(--grad-light) 100%); align-items: center; justify-content: center; }
+  .logo-mark { display: flex; align-items: center; gap: 10px; color: #fff; }
+  .logo-d {
+    width: 44px; height: 44px; border: 3px solid #fff; border-radius: 50% 50% 50% 6px;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px;
+    transform: rotate(-8deg);
+  }
+  .logo-word { font-size: 34px; font-weight: 800; letter-spacing: 4px; }
+  .splash-tag { color: rgba(255,255,255,.8); font-size: 12px; margin-top: 14px; letter-spacing: 1px; }
+
+  .screen-onboard { background: var(--white); }
+  .ob-art {
+    flex: 1; background: linear-gradient(135deg, var(--grad-dark) 0%, var(--grad-mid) 70%);
+    clip-path: polygon(0 0, 100% 0, 100% 55%, 0 90%);
+    display: flex; align-items: center; justify-content: center; font-size: 80px;
+  }
+  .ob-body { padding: 26px 30px 40px; text-align: center; }
+  .ob-body h2 { color: var(--plum-deep); font-size: 1.25rem; letter-spacing: 2px; margin-bottom: 8px; }
+  .ob-body p { color: var(--muted); font-size: .85rem; margin-bottom: 22px; }
+
+  .screen-welcome { background: var(--white); position: relative; }
+  .welcome-art { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px; }
+  .welcome-art .big-emoji { font-size: 72px; }
+  .welcome-body { padding: 0 30px 44px; text-align: center; position: relative; }
+  .welcome-body::before {
+    content: ""; position: absolute; inset: auto -40px -60px -40px; height: 180px;
+    background: linear-gradient(135deg, var(--grad-dark), var(--grad-light));
+    transform: skewY(-10deg); z-index: 0;
+  }
+  .welcome-body > * { position: relative; z-index: 1; }
+  .welcome-body h2 { color: var(--plum); font-size: 1.3rem; }
+  .welcome-body h2 .brand { color: var(--pink-accent); font-weight: 800; letter-spacing: 2px; }
+  .welcome-body .sub { color: var(--muted); font-size: .85rem; margin: 6px 0 26px; }
+
+  .btn {
+    display: block; width: 100%; padding: 13px; border-radius: 26px; border: none;
+    font: inherit; font-weight: 600; cursor: pointer; text-align: center;
+  }
+  .btn-grad { background: linear-gradient(90deg, var(--grad-dark), var(--pink-accent)); color: #fff; box-shadow: 0 6px 14px rgba(107, 58, 120, .35); }
+  .btn-white { background: #fff; color: var(--plum); box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+  .btn + .btn { margin-top: 12px; }
+
+  .hdr {
+    background: linear-gradient(90deg, var(--grad-dark), var(--grad-mid));
+    color: #fff; padding: 10px 18px 14px; flex-shrink: 0;
+  }
+  .hdr-row { display: flex; align-items: center; gap: 12px; }
+  .hdr .title { font-weight: 700; letter-spacing: 1px; font-size: .95rem; flex: 1; text-align: center; }
+  .hdr .side { width: 30px; text-align: center; font-size: 18px; cursor: pointer; }
+  .hdr .brandline { font-size: 11px; opacity: .85; letter-spacing: 1px; }
+  .hdr .brandname { font-size: 17px; font-weight: 800; letter-spacing: 2px; }
+  .hdr .logo-mini { width: 26px; height: 26px; border: 2px solid #fff; border-radius: 50% 50% 50% 5px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; transform: rotate(-8deg); }
+
+  .searchbar { display: flex; align-items: center; background: #fff; border-radius: 22px; padding: 4px 6px 4px 16px; margin: 12px 0 4px; box-shadow: var(--card-shadow); }
+  .searchbar input { flex: 1; border: none; outline: none; font: inherit; font-size: .85rem; color: var(--ink); background: transparent; }
+  .searchbtn { width: 36px; height: 36px; border-radius: 50%; border: none; background: var(--grad-dark); color: #fff; cursor: pointer; font-size: 15px; }
+
+  .content { padding: 12px 18px 90px; }
+  .section-label { font-size: .78rem; font-weight: 700; letter-spacing: 1px; color: var(--plum-deep); margin: 14px 0 10px; display: flex; justify-content: space-between; align-items: center; }
+  .section-label .see-all { color: var(--pink-accent); font-weight: 600; cursor: pointer; font-size: .75rem; }
+
+  .banner-card {
+    border-radius: 16px; overflow: hidden; position: relative; color: #fff;
+    background: linear-gradient(135deg, var(--grad-dark), var(--pink-accent));
+    padding: 18px; box-shadow: var(--card-shadow);
+  }
+  .banner-card h3 { font-size: 1.15rem; line-height: 1.25; }
+  .banner-card p { font-size: .75rem; opacity: .9; margin-top: 6px; }
+  .banner-emoji { position: absolute; right: 14px; bottom: 10px; font-size: 44px; }
+
+  .agency-card, .pkg-card {
+    background: #fff; border-radius: 14px; padding: 12px 14px; display: flex; gap: 12px;
+    align-items: center; box-shadow: var(--card-shadow); margin-bottom: 10px; cursor: pointer;
+    border: 1px solid transparent; transition: border-color .15s;
+  }
+  .agency-card:active, .pkg-card:active { border-color: var(--grad-mid); }
+  .agency-logo {
+    width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+    background: linear-gradient(135deg, var(--blush), #d9c3d9);
+  }
+  .agency-info { flex: 1; min-width: 0; }
+  .agency-info h4 { font-size: .9rem; color: var(--ink); }
+  .agency-info .loc { font-size: .75rem; color: var(--pink-accent); margin: 2px 0; }
+  .stars { color: #d9a441; font-size: .72rem; letter-spacing: 1px; }
+  .pkg-meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: .7rem; color: var(--muted); margin-top: 4px; }
+  .pkg-meta span { background: var(--blush); padding: 2px 8px; border-radius: 10px; }
+  .card-action { text-align: center; flex-shrink: 0; }
+  .card-action .count { font-size: .72rem; color: var(--muted); }
+  .view-btn { margin-top: 5px; background: var(--grad-dark); color: #fff; border: none; border-radius: 14px; padding: 5px 14px; font-size: .72rem; font-weight: 600; cursor: pointer; }
+  .pkg-price { font-weight: 800; color: var(--pink-accent); font-size: .95rem; white-space: nowrap; }
+  .pkg-price small { display: block; font-weight: 500; font-size: .62rem; color: var(--muted); }
+
+  .tab-row { display: flex; gap: 10px; margin: 10px 0 12px; }
+  .tab {
+    flex: 1; padding: 9px; border-radius: 18px; text-align: center; font-size: .82rem;
+    font-weight: 600; background: #fff; color: var(--muted); cursor: pointer; box-shadow: var(--card-shadow); border: none; font-family: inherit;
+  }
+  .tab.active { background: var(--grad-dark); color: #fff; }
+
+  .empty { text-align: center; padding: 50px 30px; color: #c09cc0; }
+  .empty .icon { font-size: 64px; margin-bottom: 12px; }
+  .empty p { font-size: .8rem; color: var(--muted); }
+
+  .book-card { background: #fff; border-radius: 14px; overflow: hidden; box-shadow: var(--card-shadow); margin-bottom: 12px; display: flex; }
+  .book-thumb { width: 96px; background: linear-gradient(160deg, var(--grad-mid), var(--grad-dark)); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; font-size: .8rem; letter-spacing: 1px; text-align: center; padding: 8px; }
+  .book-thumb .off { background: var(--pink-accent); border-radius: 10px; font-size: .6rem; padding: 2px 8px; margin-top: 8px; }
+  .book-info { flex: 1; padding: 10px 14px; }
+  .book-info h4 { font-size: .85rem; }
+  .book-info .by { font-size: .72rem; color: var(--pink-accent); margin: 2px 0; }
+  .book-info .row { font-size: .72rem; color: var(--muted); display: flex; gap: 6px; align-items: center; margin-top: 3px; }
+  .book-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .book-foot .price { font-weight: 800; color: var(--pink-accent); }
+  .status-chip { font-size: .62rem; padding: 3px 10px; border-radius: 10px; font-weight: 700; }
+  .chip-ongoing { background: #e7f0e7; color: #3c7a3c; }
+  .chip-past { background: var(--blush); color: var(--muted); }
+
+  .detail-hero {
+    background: linear-gradient(135deg, var(--grad-dark), var(--grad-mid));
+    color: #fff; padding: 24px 20px 20px; flex-shrink: 0;
+  }
+  .detail-hero .back { font-size: 20px; cursor: pointer; width: 30px; }
+  .detail-hero h2 { font-size: 1.25rem; margin-top: 6px; }
+  .detail-hero .loc { color: #f0d8f0; font-size: .8rem; margin-top: 4px; }
+  .detail-hero .stars { color: #ffd76e; margin-top: 4px; }
+  .detail-body { padding: 16px 20px 96px; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .info-cell { background: #fff; border-radius: 12px; padding: 10px 12px; box-shadow: var(--card-shadow); font-size: .72rem; color: var(--muted); }
+  .info-cell strong { display: block; font-size: .82rem; color: var(--ink); margin-top: 2px; }
+  .list-block h4 { font-size: .78rem; letter-spacing: 1px; color: var(--plum-deep); margin: 14px 0 8px; }
+  .list-block ul { list-style: none; }
+  .list-block li { background: #fff; border-radius: 10px; padding: 9px 12px; font-size: .8rem; margin-bottom: 6px; box-shadow: var(--card-shadow); display: flex; gap: 8px; align-items: center; }
+  .highlight-box { background: linear-gradient(135deg, var(--blush), #ecdff0); border-left: 4px solid var(--pink-accent); border-radius: 10px; padding: 12px; font-size: .8rem; margin-top: 14px; }
+
+  .bottom-cta {
+    position: absolute; left: 0; right: 0; bottom: 64px;
+    background: #fff; padding: 12px 20px; display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 -6px 16px rgba(0,0,0,.08); z-index: 5;
+  }
+  .bottom-cta .price { font-weight: 800; color: var(--pink-accent); font-size: 1.05rem; flex: 1; }
+  .bottom-cta .price small { font-weight: 500; font-size: .65rem; color: var(--muted); display: block; }
+  .bottom-cta .btn { width: auto; padding: 11px 34px; }
+
+  .stepper { display: flex; align-items: center; justify-content: center; padding: 18px 20px 8px; }
+  .step { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: .65rem; color: var(--muted); }
+  .step .dot { width: 14px; height: 14px; border-radius: 50%; background: #d8c8d8; }
+  .step.active { color: var(--pink-accent); font-weight: 700; }
+  .step.active .dot { background: var(--pink-accent); }
+  .step-line { width: 56px; height: 2px; background: #d8c8d8; margin: 0 6px 16px; }
+
+  .form-block { padding: 8px 20px 100px; }
+  .form-block h4 { font-size: .78rem; letter-spacing: 1px; color: var(--plum-deep); margin: 14px 0 8px; }
+  .field { margin-bottom: 10px; }
+  .field label { display: block; font-size: .7rem; color: var(--muted); margin-bottom: 4px; }
+  .field input, .field select {
+    width: 100%; padding: 11px 14px; border: 1px solid #e0d0e0; border-radius: 12px;
+    font: inherit; font-size: .85rem; background: #fff; color: var(--ink); outline: none;
+  }
+  .field input:focus { border-color: var(--grad-mid); }
+  .person-row { background: #fff; border-radius: 14px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--card-shadow); margin-top: 10px; cursor: pointer; font-size: .85rem; font-weight: 600; }
+  .upload-box { border: 2px dashed #c9b2c9; border-radius: 14px; height: 110px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #b595b5; background: #faf6fa; }
+
+  .pay-opt { background: #fff; border-radius: 14px; padding: 13px 16px; display: flex; align-items: center; gap: 12px; box-shadow: var(--card-shadow); margin-bottom: 10px; cursor: pointer; font-size: .85rem; }
+  .pay-opt .radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #c9b2c9; margin-left: auto; flex-shrink: 0; }
+  .pay-opt.selected { border: 2px solid var(--pink-accent); }
+  .pay-opt.selected .radio { border-color: var(--pink-accent); background: var(--pink-accent); box-shadow: inset 0 0 0 3px #fff; }
+  .pay-emoji { width: 34px; height: 34px; border-radius: 8px; background: var(--blush); display: flex; align-items: center; justify-content: center; font-size: 17px; }
+
+  .profile-hero { background: linear-gradient(160deg, var(--grad-dark), var(--grad-mid)); padding: 26px 20px 30px; text-align: center; color: #fff; flex-shrink: 0; position: relative; }
+  .avatar { width: 84px; height: 84px; border-radius: 20px; margin: 0 auto 10px; background: linear-gradient(135deg, #7ec8e3, #4a90b8); display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 8px 20px rgba(0,0,0,.25); }
+  .profile-hero h3 { font-size: .95rem; letter-spacing: .5px; }
+  .profile-hero .id { font-size: .72rem; opacity: .8; margin-top: 3px; }
+  .profile-hero .logout { position: absolute; top: 16px; right: 18px; font-size: 18px; cursor: pointer; }
+  .menu-list { padding: 20px; }
+  .menu-item { background: #fff; border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: var(--card-shadow); margin-bottom: 10px; cursor: pointer; font-size: .85rem; font-weight: 600; }
+  .menu-item .chev { margin-left: auto; color: var(--muted); }
+  .menu-item .ico { width: 32px; height: 32px; border-radius: 9px; background: var(--blush); display: flex; align-items: center; justify-content: center; font-size: 15px; }
+
+  .toast {
+    position: absolute; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(20px);
+    background: var(--plum-deep); color: #fff; padding: 10px 20px; border-radius: 20px;
+    font-size: .78rem; opacity: 0; pointer-events: none; transition: all .3s; z-index: 50; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .bottomnav {
+    position: absolute; left: 10px; right: 10px; bottom: 10px; height: 54px;
+    background: #fff; border-radius: 27px; box-shadow: 0 8px 24px rgba(0,0,0,.18);
+    display: flex; align-items: center; justify-content: space-around; z-index: 10; padding: 0 8px;
+  }
+  .bottomnav .nav-item {
+    width: 42px; height: 42px; border-radius: 50%; border: none; background: transparent;
+    font-size: 19px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center;
+  }
+  .bottomnav .nav-item.active { background: var(--grad-dark); color: #fff; }
+  .notice { max-width: 640px; text-align: center; font-size: .72rem; color: var(--muted); margin-top: 16px; }
+
+  .trav-row { background: #fff; border-radius: 14px; padding: 12px 16px; display: flex; align-items: center; box-shadow: var(--card-shadow); margin-bottom: 10px; font-size: .85rem; font-weight: 600; }
+  .stepper-ctrl { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .stepper-ctrl button { width: 26px; height: 26px; border-radius: 50%; border: none; background: var(--blush); color: var(--plum-deep); font-size: 15px; font-weight: 700; cursor: pointer; }
+  .stepper-ctrl .plus { background: var(--pink-accent); color: #fff; }
+  .stepper-ctrl .num { min-width: 18px; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="intro">
+    <h1>DERAP — app built from your Figma UI mockup</h1>
+    <p>Interactive demo of the screens in 24BT01001_UI Project.pdf — splash, onboarding, explore, agency &amp; package details, booking flow and profile. All data is sample data.</p>
+  </div>
+
+  <div class="phone" id="phone">
+
+    <!-- SPLASH -->
+    <section class="screen screen-splash active" id="scr-splash">
+      <div class="statusbar on-dark"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+      <div class="logo-mark"><div class="logo-d">D</div><div class="logo-word">DERAP</div></div>
+      <div class="splash-tag">JALAN-JALAN, MALAYSIA</div>
+    </section>
+
+    <!-- ONBOARDING -->
+    <section class="screen screen-onboard" id="scr-onboard">
+      <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+      <div class="ob-art">🧳✈️</div>
+      <div class="ob-body">
+        <h2>DISCOVER YOUR JOURNEY</h2>
+        <p>Explore exciting travel packages and find destinations that match your plans.</p>
+        <button class="btn btn-grad" onclick="go('welcome')">Start &nbsp;›</button>
+      </div>
+    </section>
+
+    <!-- WELCOME -->
+    <section class="screen screen-welcome" id="scr-welcome">
+      <div class="statusbar"><span>9:41</span><span>▮▮▮ ⌁ ▰</span></div>
+      <div class="welcome-art">
+        <div class="big-emoji">🔐</div>
+        <div style="font-size:13px;color:var(--muted)">Demo mode — sign in instantly, no account needed</div>
+      </div>
+      <div class="welcome-body">
+        <h2>Let's Begin Your First<br><span class="brand">DERAP</span><br><small style="font-weight:500;color:var(--muted)">With Us</small></h2>
+        <p class="sub">WELCOME!</p>
+        <button class="btn btn-white" onclick="signIn()">Sign In</button>
+        <button class="btn btn-grad" onclick="signIn()">Sign Up</button>
+      </div>
+    </section>
+
+    <!-- HOME -->
+    <section class="screen" id="scr-home">
+      <div class="hdr">
+        <div class="statusbar on-dark" style="padding:0 0 6px"><span>9:41</span><span>🔔</span></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="logo-mini">D</span>
+          <div><div class="brandline">Let's Begin Your</div><div class="brandname">DERAP</div></div>
+        </div>
+        <div class="searchbar">
+          <input id="search-home" type="text" placeholder="Search agencies or packages…" oninput="renderHome()">
+          <button class="searchbtn" onclick="renderHome()">🔍</button>
+        </div>
+      </div>
+      <div class="content" id="home-content"></div>
+      <nav class="bottomnav">
+        <button class="nav-item active" data-nav="home">🏠</button>
+        <button class="nav-item" data-nav="explore">🧭</button>
+        <button class="nav-item" data-nav="bookings">🎫</button>
+        <button class="nav-item" data-nav="profile">👤</button>
+      </nav>
+    </section>
+
+    <!-- EXPLORE -->
+    <section class="screen" id="scr-explore">
+      <div class="hdr">
+        <div class="statusbar on-dark" style="padding:0 0 6px"><span>9:41</span><span></span></div>
+        <div class="hdr-row"><span class="side" onclick="go('home')">‹</span><div class="title">EXPLORE</div><span class="side"></span></div>
+        <div class="searchbar">
+          <input id="search-explore" type="text" placeholder="Search…" oninput="renderExplore()">
+          <button class="searchbtn" onclick="renderExplore()">🔍</button>
+        </div>
+        <div class="tab-row">
+          <button class="tab active" id="tab-agency" onclick="setExploreTab('agency')">Agency</button>
+          <button class="tab" id="tab-package" onclick="setExploreTab('package')">Package</button>
+        </div>
+      </div>
+      <div class="content" id="explore-content" style="padding-bottom:90px"></div>
+      <nav class="bottomnav">
+        <button class="nav-item" data-nav="home">🏠</button>
+        <button class="nav-item active" data-nav="explore">🧭</button>
+        <button class="nav-item" data-nav="bookings">🎫</button>
+        <button class="nav-item" data-nav="profile">👤</button>
+      </nav>
+    </section>
+
+    <!-- AGENCY DETAIL -->
+    <section class="screen" id="scr-agency">
+      <div id="agency-detail"></div>
+      <nav class="bottomnav">
+        <button class="nav-item" data-nav="home">🏠</button>
+        <button class="nav-item active" data-nav="explore">🧭</button>
+        <button class="nav-item" data-nav="bookings">🎫</button>
+        <button class="nav-item" data-nav="profile">👤</button>
+      </nav>
+    </section>
+
+    <!-- PACKAGE DETAIL -->
+    <section class="screen" id="scr-package">
+      <div id="package-detail"></div>
+      <div class="bottom-cta" id="package-cta"></div>
+      <nav class="bottomnav">
+        <button class="nav-item" data-nav="home">🏠</button>
+        <button class="nav-item active" data-nav="explore">🧭</button>
+        <button class="nav-item" data-nav="bookings">🎫</button>
+        <button class="nav-item" data-nav="profile">👤</button>
+      </nav>
+    </section>
+
+    <!-- BOOKING FORM (stepper) -->
+    <section class="screen" id="scr-bookingform">
+      <div class="hdr">
+        <div class="statusbar on-dark" style="padding:0 0 6px"><span>9:41</span><span></span></div>
+        <div class="hdr-row"><span class="side" onclick="go('package')">‹</span><div class="title">Booking Details</div><span class="side"></span></div>
+        <div class="stepper">
+          <div class="step active" id="st1"><div class="dot"></div>Person</div>
+          <div class="step-line"></div>
+          <div class="step" id="st2"><div class="dot"></div>Fill Detail</div>
+          <div class="step-line"></div>
+          <div class="step" id="st3"><div class="dot"></div>Payment</div>
+        </div>
+      </div>
+      <div id="bookingform-body"></div>
+      <div class="bottom-cta" id="bookingform-cta"></div>
+    </section>
+
+    <!-- BOOKINGS LIST -->
+    <section class="screen" id="scr-bookings">
+      <div class="hdr">
+        <div class="statusbar on-dark" style="padding:0 0 6px"><span>9:41</span><span></span></div>
+        <div class="hdr-row"><span class="side" onclick="go('home')">‹</span><div class="title">BOOKING</div><span class="side"></span></div>
+        <div class="searchbar">
+          <input id="search-bookings" type="text" placeholder="Search" oninput="renderBookings()">
+          <button class="searchbtn">🔍</button>
+        </div>
+        <div class="tab-row">
+          <button class="tab active" id="btab-ongoing" onclick="setBookingTab('ongoing')">Ongoing</button>
+          <button class="tab" id="btab-past" onclick="setBookingTab('past')">Past</button>
+        </div>
+      </div>
+      <div class="content" id="bookings-content"></div>
+      <nav class="bottomnav">
+        <button class="nav-item" data-nav="home">🏠</button>
+        <button class="nav-item" data-nav="explore">🧭</button>
+        <button class="nav-item active" data-nav="bookings">🎫</button>
+        <button class="nav-item" data-nav="profile">👤</button>
+      </nav>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="screen" id="scr-profile">
+      <div class="profile-hero">
+        <div class="statusbar on-dark" style="padding:0;position:absolute;top:0;left:0;right:0"><span>9:41</span><span></span></div>
+        <span class="logout" onclick="logout()" title="Log out">⏻</span>
+        <div class="avatar">🧕</div>
+        <h3>FATIMAH BINTI ROSLAN</h3>
+        <div class="id">22BT01001 · demo profile</div>
+      </div>
+      <div class="menu-list">
+        <div class="menu-item"><span class="ico">👤</span>Personal Information <span class="chev">›</span></div>
+        <div class="menu-item"><span class="ico">🛡️</span>Payment Methods <span class="chev">›</span></div>
+        <div class="menu-item" onclick="go('bookings')"><span class="ico">🎫</span>My Bookings <span class="chev">›</span></div>
+      </div>
+      <nav class="bottomnav">
+        <button class="nav-item" data-nav="home">🏠</button>
+        <button class="nav-item" data-nav="explore">🧭</button>
+        <button class="nav-item" data-nav="bookings">🎫</button>
+        <button class="nav-item active" data-nav="profile">👤</button>
+      </nav>
+    </section>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <div class="notice">Demo built from the Figma UI in 24BT01001_UI Project.pdf. All agencies, packages, prices and bookings are sample data only — no real accounts or payments.</div>
+
+<script>
+  // ---------- Sample data ----------
+  const AGENCIES = [
+    { id: "a1", name: "Destinasi Kita Travel", location: "Kuala Lumpur", stars: 5, emoji: "🏝️", note: "Local packages across Malaysia", packages: ["p1","p2","p4"] },
+    { id: "a2", name: "Jelajah Borneo Travel", location: "Kota Kinabalu, Sabah", stars: 4, emoji: "⛰️", note: "Borneo adventures & climbs", packages: ["p3"] },
+    { id: "a3", name: "Seri Melaka Journeys", location: "Melaka City", stars: 4, emoji: "🏛️", note: "Heritage & food trails", packages: ["p5"] },
+    { id: "a4", name: "Tioman Bay Holidays", location: "Mersing, Johor", stars: 4, emoji: "🐠", note: "Island snorkel & dive trips", packages: ["p6"] },
+  ];
+  const PACKAGES = [
+    { id: "p1", name: "Cameron Highlands Escape", agencyId: "a1", destination: "Pahang", duration: "3 Days / 2 Nights", depart: "12 Oct 2025", price: 699, transport: "Coach", stay: "Homestay", room: "Shared Room", guide: "Driver-Guide", activities: ["Tea plantation walk", "Strawberry farm", "Night market"], highlight: "Cool highland air, mossy forest and endless tea fields." },
+    { id: "p2", name: "Pulau Redang Island Hopper", agencyId: "a1", destination: "Terengganu", duration: "4 Days / 3 Nights", depart: "20 Nov 2025", price: 899, transport: "Ferry + Van", stay: "Beach Resort", room: "Twin Share", guide: "Tour Guide", activities: ["Snorkelling", "Island hopping", "BBQ dinner"], highlight: "Crystal water and coral gardens at Malaysia's classic island paradise." },
+    { id: "p3", name: "Mount Kinabalu Explorer", agencyId: "a2", destination: "Sabah", duration: "5 Days / 4 Nights", depart: "8 Dec 2025", price: 2450, transport: "Flight + Van", stay: "Lodge + Hut", room: "Shared", guide: "Mountain Guide", activities: ["Summit trek", "Canopy walk", "Hot springs"], highlight: "Sunrise from Low's Peak at 4,095 m — the roof of Malaysia." },
+    { id: "p4", name: "Langkawi Geopark Getaway", agencyId: "a1", destination: "Kedah", duration: "4 Days / 3 Nights", depart: "15 Jan 2026", price: 1280, transport: "Flight", stay: "Beachfront Hotel", room: "Double", guide: "Local Guide", activities: ["SkyCab", "Island-hopping", "Mangrove tour"], highlight: "Sunset at Pantai Cenang and the SkyCab cable car." },
+    { id: "p5", name: "Melaka Heritage Weekend", agencyId: "a3", destination: "Melaka", duration: "3 Days / 2 Nights", depart: "1 Nov 2025", price: 690, transport: "Coach", stay: "Boutique Hotel", room: "Twin", guide: "Heritage Guide", activities: ["Jonker Street walk", "A Famosa", "Food trail"], highlight: "UNESCO World Heritage streets and Nyonya cuisine." },
+    { id: "p6", name: "Tioman Snorkel & Dive", agencyId: "a4", destination: "Pahang (Mersing)", duration: "3 Days / 2 Nights", depart: "6 Dec 2025", price: 750, transport: "Ferry", stay: "Chalet", room: "Quad Share", guide: "Dive Master", activities: ["Snorkelling", "Discover scuba", "Sunset kayak"], highlight: "Warm shallow reefs perfect for first-time snorkellers." },
+  ];
+  const agencyById = id => AGENCIES.find(a => a.id === id);
+  const pkgById = id => PACKAGES.find(p => p.id === id);
+  const starsStr = n => "★".repeat(n) + "☆".repeat(5 - n);
+  const rm = n => "RM" + n.toLocaleString("en-MY");
+
+  // ---------- State ----------
+  let bookings = [
+    { id: "b1", title: "Hat Yai Thailand", agency: "Jelajah Dunia Travel", depart: "13 Oct 2025", ret: "15 Oct 2025", price: 899, discount: "-49%", status: "ongoing" },
+  ];
+  let exploreTab = "agency";
+  let bookingTab = "ongoing";
+  let bookingDraft = null;
+  let selectedPay = null;
+
+  // ---------- Navigation ----------
+  const navScreens = { home: "scr-home", explore: "scr-explore", bookings: "scr-bookings", profile: "scr-profile" };
+  function show(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+  }
+  function go(name) {
+    if (navScreens[name]) renderFor(name);
+    show(navScreens[name] || "scr-" + name);
+  }
+  function renderFor(name) {
+    if (name === "home") renderHome();
+    if (name === "explore") renderExplore();
+    if (name === "bookings") renderBookings();
+  }
+  document.querySelectorAll(".bottomnav .nav-item").forEach(btn =>
+    btn.addEventListener("click", () => go(btn.dataset.nav))
+  );
+
+  function toast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg; t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  setTimeout(() => go("onboard"), 1600);
+  function signIn() { toast("Signed in as demo user"); go("home"); }
+  function logout() { toast("Logged out — see you soon!"); go("welcome"); }
+
+  // ---------- Home ----------
+  function renderHome() {
+    const q = (document.getElementById("search-home").value || "").toLowerCase();
+    const ags = AGENCIES.filter(a => !q || (a.name + a.location + a.note).toLowerCase().includes(q));
+    const pks = PACKAGES.filter(p => !q || (p.name + p.destination).toLowerCase().includes(q));
+    document.getElementById("home-content").innerHTML = `
+      <div class="banner-card">
+        <h3>Jom Jalan! Explore<br>Malaysia 🇲🇾</h3>
+        <p>Handpicked local packages from trusted Malaysian agencies — all sample data.</p>
+        <div class="banner-emoji">🏔️</div>
+      </div>
+      <div class="section-label">AGENCY ${q ? "· matches" : ""}<span class="see-all" onclick="setExploreTab('agency');go('explore')">See all ›</span></div>
+      ${ags.length ? ags.map(a => agencyCard(a)).join("") : `<div class="empty"><div class="icon">🔍</div><p>No agencies match “${q}”</p></div>`}
+      <div class="section-label">TRAVEL PACKAGE ${q ? "· matches" : ""}<span class="see-all" onclick="setExploreTab('package');go('explore')">See all ›</span></div>
+      ${pks.length ? pks.slice(0,3).map(pkgCard).join("") : `<div class="empty"><div class="icon">🧳</div><p>No packages match “${q}”</p></div>`}
+    `;
+  }
+  function agencyCard(a) {
+    return `<div class="agency-card" onclick="openAgency('${a.id}')">
+      <div class="agency-logo">${a.emoji}</div>
+      <div class="agency-info">
+        <h4>${a.name}</h4>
+        <div class="loc">📍 ${a.location}</div>
+        <div class="stars">${starsStr(a.stars)}</div>
+      </div>
+      <div class="card-action">
+        <div class="count">📦 ${a.packages.length} Packages</div>
+        <button class="view-btn">View</button>
+      </div>
+    </div>`;
+  }
+  function pkgCard(p) {
+    const a = agencyById(p.agencyId);
+    return `<div class="pkg-card" onclick="openPackage('${p.id}')">
+      <div class="agency-logo">${a.emoji}</div>
+      <div class="agency-info">
+        <h4>${p.name}</h4>
+        <div class="loc">📍 ${p.destination} · ${p.duration}</div>
+        <div class="pkg-meta"><span>🚌 ${p.transport}</span><span>🏨 ${p.stay}</span></div>
+      </div>
+      <div class="card-action">
+        <div class="pkg-price">${rm(p.price)}<small>per person</small></div>
+        <button class="view-btn">View</button>
+      </div>
+    </div>`;
+  }
+
+  // ---------- Explore ----------
+  function setExploreTab(tab) {
+    exploreTab = tab;
+    document.getElementById("tab-agency").classList.toggle("active", tab === "agency");
+    document.getElementById("tab-package").classList.toggle("active", tab === "package");
+    renderExplore();
+  }
+  function renderExplore() {
+    const q = (document.getElementById("search-explore").value || "").toLowerCase();
+    const box = document.getElementById("explore-content");
+    if (exploreTab === "agency") {
+      const ags = AGENCIES.filter(a => !q || (a.name + a.location + a.note).toLowerCase().includes(q));
+      box.innerHTML = ags.length ? ags.map(a => agencyCard(a)).join("")
+        : `<div class="empty"><div class="icon">📁✖</div><p>Oops! No agency found</p></div>`;
+    } else {
+      const pks = PACKAGES.filter(p => !q || (p.name + p.destination).toLowerCase().includes(q));
+      box.innerHTML = pks.length ? pks.map(pkgCard).join("")
+        : `<div class="empty"><div class="icon">📁✖</div><p>Oops! No package found</p></div>`;
+    }
+  }
+
+  // ---------- Agency detail ----------
+  function openAgency(id) {
+    const a = agencyById(id);
+    const pks = a.packages.map(pkgById);
+    document.getElementById("agency-detail").innerHTML = `
+      <div class="detail-hero">
+        <div class="statusbar on-dark" style="padding:0 0 8px"><span>9:41</span><span>🔗</span></div>
+        <div style="display:flex;align-items:flex-start;gap:14px">
+          <span class="back" onclick="go('explore')">‹</span>
+          <div class="agency-logo" style="background:#fff;width:64px;height:64px;font-size:30px">${a.emoji}</div>
+        </div>
+        <h2>${a.name}</h2>
+        <div class="loc">📍 ${a.location}</div>
+        <div class="stars">${starsStr(a.stars)}</div>
+      </div>
+      <div class="detail-body">
+        <div class="info-grid">
+          <div class="info-cell">Packages<strong>${a.packages.length} available</strong></div>
+          <div class="info-cell">Focus<strong>${a.note}</strong></div>
+        </div>
+        <div class="list-block">
+          <h4>TRAVEL PACKAGE</h4>
+          ${pks.map(pkgCard).join("")}
+        </div>
+      </div>`;
+    go("agency");
+  }
+
+  // ---------- Package detail ----------
+  function openPackage(id) {
+    const p = pkgById(id);
+    const a = agencyById(p.agencyId);
+    document.getElementById("package-detail").innerHTML = `
+      <div class="detail-hero" style="background:linear-gradient(160deg,var(--grad-mid),var(--grad-dark))">
+        <div class="statusbar on-dark" style="padding:0 0 8px"><span>9:41</span><span>🔗</span></div>
+        <div style="display:flex;align-items:center;gap:12px"><span class="back" onclick="go('explore')">‹</span><strong style="font-size:.85rem;letter-spacing:1px">PACKAGE</strong></div>
+        <h2>${p.name}</h2>
+        <div class="loc">📍 ${p.destination} · by ${a.name}</div>
+      </div>
+      <div class="detail-body">
+        <div class="info-grid">
+          <div class="info-cell">📅 Departure<strong>${p.depart}</strong></div>
+          <div class="info-cell">⏱️ Duration<strong>${p.duration}</strong></div>
+          <div class="info-cell">🚌 Transport<strong>${p.transport}</strong></div>
+          <div class="info-cell">🧑‍✈️ Tour Guide<strong>${p.guide}</strong></div>
+        </div>
+        <div class="list-block">
+          <h4>PACKAGE DETAILS</h4>
+          <ul>
+            <li>🏨 &nbsp;${p.stay}</li>
+            <li>🛏️ &nbsp;${p.room}</li>
+            <li>🎯 &nbsp;Activity: ${p.activities.join(", ")}</li>
+          </ul>
+        </div>
+        <div class="highlight-box"><strong>Highlight:</strong> ${p.highlight}</div>
+      </div>`;
+    document.getElementById("package-cta").innerHTML = `
+      <div class="price">${rm(p.price)}<small>per person · sample price</small></div>
+      <button class="btn btn-grad" onclick="startBooking('${p.id}')">BOOK</button>`;
+    go("package");
+  }
+
+  // ---------- Booking form (stepper) ----------
+  function startBooking(pkgId) {
+    bookingDraft = { pkgId, adults: 2, kids: 0, infants: 0, step: 1, name: "", age: "", phone: "", email: "", passport: "", expiry: "" };
+    selectedPay = null;
+    renderBookingForm();
+    go("bookingform");
+  }
+  function renderBookingForm() {
+    const d = bookingDraft, p = pkgById(d.pkgId);
+    ["st1","st2","st3"].forEach((id, i) => document.getElementById(id).classList.toggle("active", d.step === i + 1));
+    const total = p.price * (d.adults + d.kids) + Math.round(p.price * 0.3) * d.infants;
+    const body = document.getElementById("bookingform-body");
+    const cta = document.getElementById("bookingform-cta");
+    if (d.step === 1) {
+      body.innerHTML = `<div class="form-block">
+        <h4>HOW MANY PAX?</h4>
+        <div class="trav-row">Adult <div class="stepper-ctrl"><button onclick="pax('adults',-1)">−</button><span class="num">${d.adults}</span><button class="plus" onclick="pax('adults',1)">+</button></div></div>
+        <div class="trav-row">Kid <div class="stepper-ctrl"><button onclick="pax('kids',-1)">−</button><span class="num">${d.kids}</span><button class="plus" onclick="pax('kids',1)">+</button></div></div>
+        <div class="trav-row">Infant <div class="stepper-ctrl"><button onclick="pax('infants',-1)">−</button><span class="num">${d.infants}</span><button class="plus" onclick="pax('infants',1)">+</button></div></div>
+        <div class="highlight-box">Sample pricing — adults and kids pay full price, infants 30%.</div>
+      </div>`;
+      cta.innerHTML = `<div class="price">${rm(total)}<small>sample total</small></div><button class="btn btn-grad" onclick="nextStep()">Book</button>`;
+    } else if (d.step === 2) {
+      body.innerHTML = `<div class="form-block">
+        <div class="person-row" onclick="toast('Demo — one traveller for all')">Person 1 &nbsp;<span>›</span></div>
+        <h4>PERSON DETAIL</h4>
+        <div class="field"><label>Enter Name</label><input value="${d.name}" oninput="draft('name',this.value)" placeholder="Full name as per IC"></div>
+        <div class="field"><label>Age</label><input value="${d.age}" oninput="draft('age',this.value)" placeholder="Age"></div>
+        <div class="field"><label>Phone No.</label><input value="${d.phone}" oninput="draft('phone',this.value)" placeholder="01X-XXXXXXX"></div>
+        <div class="field"><label>Email</label><input value="${d.email}" oninput="draft('email',this.value)" placeholder="name@email.com"></div>
+        <h4>PERSON DETAIL (TRAVEL DOC)</h4>
+        <div class="field"><label>Passport / IC No.</label><input value="${d.passport}" oninput="draft('passport',this.value)" placeholder="Passport No."></div>
+        <div class="field"><label>Passport Expiry Date</label><input value="${d.expiry}" oninput="draft('expiry',this.value)" placeholder="YYYY-MM-DD"></div>
+        <h4>ATTACH DOCUMENT</h4>
+        <div class="upload-box" onclick="toast('Demo — file upload disabled')">＋</div>
+      </div>`;
+      cta.innerHTML = `<div class="price">${rm(total)}<small>sample total</small></div><button class="btn btn-grad" onclick="nextStep()">Pay</button>`;
+    } else {
+      const opts = [["💳","Credit / Debit Card"],["🏦","FPX Online Banking"],["📱","Touch 'n Go eWallet"],["👛","Other E-Wallet"]];
+      body.innerHTML = `<div class="form-block">
+        <h4>PAYMENT METHOD</h4>
+        ${opts.map(([e, n]) => `
+          <div class="pay-opt ${selectedPay === n ? "selected" : ""}" onclick="pickPay('${n}')">
+            <span class="pay-emoji">${e}</span> ${n} <span class="radio"></span>
+          </div>`).join("")}
+        <div class="highlight-box">Demo only — no real payment is processed.</div>
+      </div>`;
+      cta.innerHTML = `<div class="price">${rm(total)}<small>sample total</small></div><button class="btn btn-grad" onclick="confirmBooking()">Proceed</button>`;
+    }
+  }
+  function pax(key, delta) {
+    const d = bookingDraft;
+    d[key] = Math.max(0, Math.min(9, d[key] + delta));
+    if (d.adults + d.kids + d.infants === 0) d.adults = 1;
+    renderBookingForm();
+  }
+  function draft(key, val) { bookingDraft[key] = val; }
+  function pickPay(n) { selectedPay = n; renderBookingForm(); }
+  function nextStep() {
+    const d = bookingDraft;
+    if (d.step === 1 && d.adults + d.kids + d.infants === 0) { toast("Add at least 1 traveller"); return; }
+    if (d.step === 2 && !d.name.trim()) { toast("Please enter the traveller name"); return; }
+    d.step++;
+    renderBookingForm();
+    document.getElementById("scr-bookingform").scrollTop = 0;
+  }
+  function confirmBooking() {
+    if (!selectedPay) { toast("Choose a payment method first"); return; }
+    const d = bookingDraft, p = pkgById(d.pkgId);
+    bookings.unshift({
+      id: "b" + Date.now(), title: p.name, agency: agencyById(p.agencyId).name,
+      depart: p.depart, ret: "—",
+      price: p.price * (d.adults + d.kids) + Math.round(p.price * 0.3) * d.infants,
+      status: "ongoing",
+    });
+    toast("Booking confirmed (demo) 🎉");
+    bookingTab = "ongoing";
+    document.getElementById("btab-ongoing").classList.add("active");
+    document.getElementById("btab-past").classList.remove("active");
+    go("bookings");
+  }
+
+  // ---------- Bookings list ----------
+  function setBookingTab(tab) {
+    bookingTab = tab;
+    document.getElementById("btab-ongoing").classList.toggle("active", tab === "ongoing");
+    document.getElementById("btab-past").classList.toggle("active", tab === "past");
+    renderBookings();
+  }
+  function renderBookings() {
+    const q = (document.getElementById("search-bookings").value || "").toLowerCase();
+    const list = bookings.filter(b => b.status === bookingTab && (!q || (b.title + b.agency).toLowerCase().includes(q)));
+    document.getElementById("bookings-content").innerHTML = list.length ? list.map(b => `
+      <div class="book-card">
+        <div class="book-thumb">${b.title.split(" ")[0].toUpperCase()}<div class="off">${b.discount || ""}</div></div>
+        <div class="book-info">
+          <h4>${b.title}</h4>
+          <div class="by">${b.agency}</div>
+          <div class="row">📅 ${b.depart} → ${b.ret}</div>
+          <div class="row">👥 ${b.status === "ongoing" ? "Upcoming trip" : "Completed"}</div>
+          <div class="book-foot">
+            <span class="price">${rm(b.price)}</span>
+            <span class="status-chip ${b.status === "ongoing" ? "chip-ongoing" : "chip-past"}">${b.status === "ongoing" ? "Ongoing" : "View"}</span>
+          </div>
+        </div>
+      </div>`).join("")
+      : `<div class="empty"><div class="icon">🗂️✖</div><p>Oops! No ${bookingTab} booking — nothing here yet</p></div>`;
+  }
+</script>
+</body>
+</html>
